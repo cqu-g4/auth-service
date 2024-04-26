@@ -1,0 +1,10 @@
+spring:
+  profile:
+    active: dev
+  application:
+    name: AUTH-SERVICE
+  cloud:
+    config:
+      name: auth-service
+  config:
+    import: "optional:configserver:"
