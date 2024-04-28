@@ -39,7 +39,8 @@ public class WebSecurityConfig {
             web.ignoring().requestMatchers(
                     HttpMethod.POST,
                     "/public/**",
-                    "/users/register"
+                    "/users/register",
+                    "/users/login"
             );
             web.ignoring().requestMatchers(
                     HttpMethod.GET,

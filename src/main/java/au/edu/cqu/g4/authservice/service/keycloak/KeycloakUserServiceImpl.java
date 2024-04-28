@@ -1,5 +1,6 @@
 package au.edu.cqu.g4.authservice.service.keycloak;
 
+import au.edu.cqu.g4.authservice.dtos.KeycloakAuthResponse;
 import au.edu.cqu.g4.authservice.dtos.UserDto;
 import au.edu.cqu.g4.authservice.dtos.UserRegistrationDto;
 import au.edu.cqu.g4.authservice.enums.Role;
@@ -25,13 +26,21 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
 
     private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
 
-  //  @Value("${keycloak.realm}")
-    private String realm= "admin";
+    @Value("${keycloak.realm}")
+    private String realm;
 
     private Keycloak keycloak;
+    private KeycloakAuthzService keycloakAuthzService;
 
-    public KeycloakUserServiceImpl(Keycloak keycloak) {
+    public KeycloakUserServiceImpl(Keycloak keycloak, KeycloakAuthzService keycloakAuthzService) {
         this.keycloak = keycloak;
+        this.keycloakAuthzService = keycloakAuthzService;
+    }
+
+    @Override
+    public KeycloakAuthResponse authorize(String email, String password) {
+        KeycloakAuthResponse response = keycloakAuthzService.authorize(email, password);
+        return response;
     }
 
     @Override
@@ -90,10 +99,9 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
                 .firstName(userRepresentation.getFirstName())
                 .lastName(userRepresentation.getLastName())
                 .email(userRepresentation.getEmail())
-                .role(Role.valueOf(Optional.ofNullable(userRepresentation.getRealmRoles())
-                        .flatMap(roles -> roles.stream().findFirst())
-                        .orElse("USER")
-                        .toUpperCase()))
+                .role(Role.valueOf(
+                        userResource.roles().realmLevel().listAll().stream().findFirst().orElse(getRole("USER")).getName()
+                ))
                 .build();
     }
 

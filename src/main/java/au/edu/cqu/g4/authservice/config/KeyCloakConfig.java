@@ -1,6 +1,5 @@
 package au.edu.cqu.g4.authservice.config;
 
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -23,6 +22,9 @@ public class KeyCloakConfig {
     @Value("${keycloak.realm}")
     private String realm;
 
+    @Value("${keycloak.client}")
+    private String client;
+
     @Bean
     public Keycloak keycloak(){
         return KeycloakBuilder.builder()
@@ -34,4 +36,11 @@ public class KeyCloakConfig {
                 .build();
     }
 
+    @Bean
+    public KeycloakAuth keycloakAuthUrl() {
+        return KeycloakAuth.builder()
+                .authUrl(String.format("%s/realms/%s/protocol/openid-connect/token", serverUrl, realm))
+                .clientId(client)
+                .build();
+    }
 }
