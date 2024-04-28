@@ -17,10 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -28,8 +25,8 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
 
     private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
 
-    @Value("${keycloak.realm}")
-    private String realm;
+  //  @Value("${keycloak.realm}")
+    private String realm= "admin";
 
     private Keycloak keycloak;
 
@@ -63,9 +60,11 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
         log.info("Response |  Status: {} | Status Info: {}", response.getStatus(), response.getStatusInfo());
 
         if (Objects.equals(201, response.getStatus())) {
+            System.out.println("Email"+ userRegistrationDto.getEmail());
             List<UserRepresentation> representationList = usersResource.searchByEmail(userRegistrationDto.getEmail(), true);
             if (!CollectionUtils.isEmpty(representationList)) {
-                UserRepresentation userRepresentation1 = representationList.stream().filter(userRepresentation -> Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().orElse(null);
+                UserRepresentation userRepresentation1 = representationList.stream().filter(userRepresentation ->
+                        Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().orElse(null);
                 assert userRepresentation1 != null;
                 emailVerification(userRepresentation1.getId());
                 assignRoleToUser(userRepresentation1.getId(), userRegistrationDto.getRole().getValue());
@@ -85,12 +84,16 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
     public UserDto getUserById(String userId) {
         UserResource userResource = getUsersResource().get(userId);
         UserRepresentation userRepresentation = userResource.toRepresentation();
+
         return UserDto.builder()
                 .id(userRepresentation.getId())
                 .firstName(userRepresentation.getFirstName())
                 .lastName(userRepresentation.getLastName())
                 .email(userRepresentation.getEmail())
-                .role(Role.valueOf(userRepresentation.getRealmRoles().stream().findFirst().orElse("USER")))
+                .role(Role.valueOf(Optional.ofNullable(userRepresentation.getRealmRoles())
+                        .flatMap(roles -> roles.stream().findFirst())
+                        .orElse("USER")
+                        .toUpperCase()))
                 .build();
     }
 

@@ -1,10 +1,30 @@
+server:
+  port: 7090
+  servlet:
+    context-path: /auth
+jwt:
+  auth:
+    converter:
+      resource-id: authenticationClientId
+keycloak:
+  realm: admin
+  domain: localhost:7080
+  adminClientId: admin-cli
+  adminClientSecret: XpTy4rlTfr6RfrIUs6LJnV7qsfpniW7z
+  client: authenticationClientId
+  urls:
+    auth: http://${keycloak.domain}
 spring:
   profile:
     active: dev
-  application:
-    name: AUTH-SERVICE
-  cloud:
-    config:
-      name: auth-service
-  config:
-    import: "optional:configserver:"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://${keycloak.domain}/realms/${keycloak.realm}
+
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
