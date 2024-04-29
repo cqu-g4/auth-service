@@ -74,9 +74,10 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
             if (!CollectionUtils.isEmpty(representationList)) {
                 UserRepresentation userRepresentation1 = representationList.stream().filter(userRepresentation ->
                         Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().orElse(null);
-                assert userRepresentation1 != null;
-                emailVerification(userRepresentation1.getId());
-                assignRoleToUser(userRepresentation1.getId(), userRegistrationDto.getRole().getValue());
+                if(userRepresentation1 != null) {
+                    emailVerification(userRepresentation1.getId());
+                    assignRoleToUser(userRepresentation1.getId(), userRegistrationDto.getRole().getValue());
+                }
             }
             return userRegistrationDto;
         }
