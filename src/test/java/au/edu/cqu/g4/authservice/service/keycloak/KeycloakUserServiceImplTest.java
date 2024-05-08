@@ -61,8 +61,8 @@ public class KeycloakUserServiceImplTest {
 
         UserRegistrationDto userRegistrationDto = new UserRegistrationDto();
         userRegistrationDto.setEmail("test@example.com");
-        userRegistrationDto.setFirstName("test");
-        userRegistrationDto.setLastName("test");
+//        userRegistrationDto.setFirstName("test");
+//        userRegistrationDto.setLastName("test");
         userRegistrationDto.setPassword("test");
         userRegistrationDto.setRole(Role.USER);
 

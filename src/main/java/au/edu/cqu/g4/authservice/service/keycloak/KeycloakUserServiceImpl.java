@@ -52,8 +52,6 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
 
         UserRepresentation user = new UserRepresentation();
         user.setEnabled(true);
-        user.setFirstName(userRegistrationDto.getFirstName());
-        user.setLastName(userRegistrationDto.getLastName());
         user.setUsername(userRegistrationDto.getEmail());
         user.setEmail(userRegistrationDto.getEmail());
         user.setEmailVerified(false);
@@ -78,33 +76,14 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
                 UserRepresentation userRepresentation1 = representationList.stream().filter(userRepresentation ->
                         Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().orElse(null);
                 if (userRepresentation1 != null) {
+                    userRegistrationDto.setUserId(userRepresentation1.getId());
                     emailVerification(userRepresentation1.getId());
                     assignRoleToUser(userRepresentation1.getId(), userRegistrationDto.getRole().getValue());
-                    callToUserInfo(userRepresentation1.getId(), userRegistrationDto.getRole());
                 }
             }
-
             return userRegistrationDto;
         } else {
             throw new RuntimeException("User registration failed: " + response.getStatus() + " " + response.getStatusInfo().toString());
-        }
-    }
-
-    private void callToUserInfo(String id, Role role) {
-        switch (role) {
-            case ADMIN -> {
-                break;
-            }
-            case THERAPY_PROVIDER -> {
-                // call therapy provider to connect therapy provider service
-                TherapyProviderDto dto = new TherapyProviderDto();
-                dto.setUserId(id);
-                therapyProviderProxy.create(dto);
-                break;
-            }
-            case USER -> {
-
-            }
         }
     }
 
