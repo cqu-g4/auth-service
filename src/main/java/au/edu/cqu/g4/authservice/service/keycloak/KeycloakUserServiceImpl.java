@@ -4,6 +4,8 @@ import au.edu.cqu.g4.authservice.dtos.KeycloakAuthResponse;
 import au.edu.cqu.g4.authservice.dtos.UserDto;
 import au.edu.cqu.g4.authservice.dtos.UserRegistrationDto;
 import au.edu.cqu.g4.authservice.enums.Role;
+import au.edu.cqu.g4.authservice.proxy.TherapyProviderProxy;
+import au.edu.cqu.g4.authservice.proxy.dtos.TherapyProviderDto;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
@@ -29,12 +31,14 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
     @Value("${keycloak.realm}")
     private String realm;
 
-    private Keycloak keycloak;
-    private KeycloakAuthzService keycloakAuthzService;
+    private final Keycloak keycloak;
+    private final KeycloakAuthzService keycloakAuthzService;
+    private final TherapyProviderProxy therapyProviderProxy;
 
-    public KeycloakUserServiceImpl(Keycloak keycloak, KeycloakAuthzService keycloakAuthzService) {
+    public KeycloakUserServiceImpl(Keycloak keycloak, KeycloakAuthzService keycloakAuthzService, TherapyProviderProxy therapyProviderProxy) {
         this.keycloak = keycloak;
         this.keycloakAuthzService = keycloakAuthzService;
+        this.therapyProviderProxy = therapyProviderProxy;
     }
 
     @Override
@@ -69,20 +73,39 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
         log.info("Response |  Status: {} | Status Info: {}", response.getStatus(), response.getStatusInfo());
 
         if (Objects.equals(201, response.getStatus())) {
-            System.out.println("Email"+ userRegistrationDto.getEmail());
             List<UserRepresentation> representationList = usersResource.searchByEmail(userRegistrationDto.getEmail(), true);
             if (!CollectionUtils.isEmpty(representationList)) {
                 UserRepresentation userRepresentation1 = representationList.stream().filter(userRepresentation ->
                         Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().orElse(null);
-                if(userRepresentation1 != null) {
+                if (userRepresentation1 != null) {
                     emailVerification(userRepresentation1.getId());
                     assignRoleToUser(userRepresentation1.getId(), userRegistrationDto.getRole().getValue());
+                    callToUserInfo(userRepresentation1.getId(), userRegistrationDto.getRole());
                 }
             }
-            return userRegistrationDto;
-        }
 
-        throw new RuntimeException("User Not Created. Status: " + response.getStatus());
+            return userRegistrationDto;
+        } else {
+            throw new RuntimeException("User registration failed: " + response.getStatus() + " " + response.getStatusInfo().toString());
+        }
+    }
+
+    private void callToUserInfo(String id, Role role) {
+        switch (role) {
+            case ADMIN -> {
+                break;
+            }
+            case THERAPY_PROVIDER -> {
+                // call therapy provider to connect therapy provider service
+                TherapyProviderDto dto = new TherapyProviderDto();
+                dto.setUserId(id);
+                therapyProviderProxy.create(dto);
+                break;
+            }
+            case USER -> {
+
+            }
+        }
     }
 
     private UsersResource getUsersResource() {
