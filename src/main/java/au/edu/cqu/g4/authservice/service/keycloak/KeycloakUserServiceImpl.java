@@ -52,6 +52,8 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
 
         UserRepresentation user = new UserRepresentation();
         user.setEnabled(true);
+        user.setFirstName(userRegistrationDto.getFirstName());
+        user.setLastName(userRegistrationDto.getLastName());
         user.setUsername(userRegistrationDto.getEmail());
         user.setEmail(userRegistrationDto.getEmail());
         user.setEmailVerified(false);
