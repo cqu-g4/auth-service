@@ -1,10 +1,11 @@
 spring:
-  profile:
-    active: dev
+  # profile:
+  #   active: dev
   application:
     name: AUTH-SERVICE
   cloud:
     config:
       name: auth-service
-  config:
-    import: "optional:configserver:"
+      uri: http://configuration-server:8888
+  config:      
+   import: "optional:configserver:"
